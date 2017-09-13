@@ -11,5 +11,13 @@ export const environment = {
     'twitter',
     'github',
     'phone'
-  ]
+  ],
+  firebaseConfig: {
+    apiKey: '...',
+    authDomain: '...',
+    databaseURL: '...',
+    projectId: '...',
+    storageBucket: '...',
+    messagingSenderId: '...'
+  }
 };
