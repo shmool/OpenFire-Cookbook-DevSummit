@@ -1,6 +1,6 @@
 <md-card class="recipe-card">
 
-  <form [formGroup]="recipeForm" novalidate>
+  <form [formGroup]="recipeForm" novalidate (ngSubmit)="handleSave()">
     <fieldset [disabled]="!edit">
 
       <md-card-header>
@@ -17,7 +17,7 @@
           </md-input-container>
         </md-card-title>
 
-        <button md-mini-fab color="primary" *ngIf="edit" (click)="handleSave()">
+        <button md-mini-fab color="primary" *ngIf="edit" type="submit">
           <md-icon>save</md-icon>
         </button>
 
