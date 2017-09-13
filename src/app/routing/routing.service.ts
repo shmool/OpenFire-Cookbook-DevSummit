@@ -8,10 +8,10 @@ export class RoutingService {
 
   constructor(private router: Router, private userService: UserService) {
     userService.userData$.subscribe(authState => {
-      if (router.isActive('/sign-in', true) && UserStatus.authenticated) {
+      if (router.isActive('/sign-in', true) && authState.status === UserStatus.authenticated) {
         router.navigate(['']);
       }
-      if (this.previousAuthStatus === UserStatus.authenticated && authState.status) {
+      if ((this.previousAuthStatus === UserStatus.authenticated) && authState.status === UserStatus.signedOut) {
         router.navigate(['/sign-in']);
       }
       if (authState.status !== UserStatus.pending) {
