@@ -4,6 +4,7 @@ import { User } from '../shared/user.interface';
 
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/merge';
+import 'rxjs/add/operator/first';
 
 export enum UserStatus {
   pending = 'pending',
@@ -36,22 +37,31 @@ const mockUsers = {
 @Injectable()
 export class UserService {
   user: User;
-  private pending$ = new BehaviorSubject({ status: UserStatus.pending });
+  private pending$ = new BehaviorSubject({ status: UserStatus.pending, user: null });
   private userAuth$ = new BehaviorSubject({ status: UserStatus.signedOut, user: null });
   userData$;
   authError: any = null;
+  uid$;
 
   constructor() {
     this.enterPending();
-    this.userData$ = this.userAuth$.merge(this.pending$);
+    // notice! it makes a difference who's merging who!
+    this.userData$ = this.pending$.merge(this.userAuth$)
+      .do(userData => {
+        if (userData.status !== UserStatus.pending) {
+          this.user = userData.user || null;
+        }
+      });
     // mock user signed-out
     setTimeout(() => {
       this.userAuth$.next({ status: UserStatus.signedOut, user: null });
     }, 2000);
+
+    this.uid$ = this.userAuth$.map(userAuth => userAuth.user && userAuth.user.uid);
   }
 
   enterPending() {
-    this.pending$.next({ status: UserStatus.pending });
+    this.pending$.next({ status: UserStatus.pending, user: this.user });
   }
 
   signOut() {
@@ -92,12 +102,7 @@ export class UserService {
     }, 2000);
   }
 
-  getUid() {
-    const userData = this.userData$.getValue();
-    return userData.user && userData.user.uid;
-  }
-
   getUser(uid) {
-    return new BehaviorSubject(uid && mockUsers[uid]);
+    return new BehaviorSubject(uid && mockUsers[uid]).first();
   }
 }

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { UserService } from '../../user/user.service';
+import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/observable/of';
 
 // mock
 const mockRecipeList = [
@@ -41,15 +44,42 @@ Cook in the camp fire for at least an hour.`
 
 @Injectable()
 export class CookbookService {
-  recipeList$: BehaviorSubject<any> = new BehaviorSubject(mockRecipeList);
-  currentRecipe$: BehaviorSubject<any> = new BehaviorSubject(null);
+  recipeList$: Observable<any>;
+  private mockRecipeList$ = new BehaviorSubject(mockRecipeList);
 
   constructor(/* todo: for mock */ private userService: UserService) {
+    this.initRecipeList();
+  }
+
+  initRecipeList() {
+    this.recipeList$ = Observable.combineLatest(
+      this.mockRecipeList$,
+      this.userService.uid$,
+      (recipeList, uid) => {
+        return recipeList.map(recipe => {
+          return {
+            ...recipe,
+            ofCurrentUser: recipe.uid === uid
+          };
+        });
+      });
   }
 
   getRecipe(id) {
     // from mock
-    this.currentRecipe$.next(mockRecipeList.find((recipe) => recipe.id === id));
+    return Observable.of(mockRecipeList.find((recipe) => recipe.id === id))
+      .switchMap(recipe => {
+        return Observable.combineLatest(
+          this.userService.getUser(recipe && recipe.uid),
+          this.userService.uid$,
+          (owner, uid) => {
+            return recipe && {
+              ...recipe,
+              owner,
+              writeProtected: owner && owner.uid !== uid
+            };
+          });
+      });
   }
 
   saveRecipe(recipe) {
@@ -58,12 +88,12 @@ export class CookbookService {
       Object.assign(currentRecipe, recipe);
     } else {
       recipe.id = Math.floor(Math.random() * 1000) + '';
-      recipe.uid = this.userService.getUid();
+      recipe.uid = this.userService.user.uid;
 
       mockRecipeList.push(recipe);
     }
 
-    this.recipeList$.next(mockRecipeList);
+    this.mockRecipeList$.next(mockRecipeList);
 
     return new Promise<{ key }>((resolve) => {
       resolve({ key: recipe.id });

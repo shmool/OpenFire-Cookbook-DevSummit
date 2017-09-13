@@ -10,8 +10,6 @@ import 'rxjs/add/operator/do';
 })
 export class RecipeCardComponent implements OnInit, OnChanges {
   @Input() recipe;
-  @Input() recipeOwner;
-  @Input() writeProtected = false;
   @Output() save: EventEmitter<any> = new EventEmitter();
   recipeForm;
   edit;
@@ -58,7 +56,7 @@ export class RecipeCardComponent implements OnInit, OnChanges {
   }
 
   handleEdit() {
-    if (!this.writeProtected) {
+    if (!this.recipe.writeProtected) {
       this.edit = true;
     }
   }

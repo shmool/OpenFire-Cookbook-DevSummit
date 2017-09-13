@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { UserService } from '../../user/user.service';
 
 @Component({
   selector: 'app-cookbook',
@@ -35,14 +34,10 @@ export class CookbookComponent implements OnInit {
   @ViewChild('sidenav') sidenav;
   listOpen = true;
 
-  constructor(private userService: UserService) {
+  constructor() {
   }
 
   ngOnInit() {
-  }
-
-  get user() {
-    return this.userService.user;
   }
 
   toggleSidenav() {

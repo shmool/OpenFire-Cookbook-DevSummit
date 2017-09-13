@@ -5,7 +5,7 @@
 
       <md-card-header>
         <app-avatar md-card-avatar
-                    [user]="recipeOwner"></app-avatar>
+                    [user]="recipe?.owner"></app-avatar>
 
         <md-card-title class="recipe-title">
           <md-input-container>
@@ -22,7 +22,7 @@
         </button>
 
         <!-- override fieldset disabled by wrapping with div -->
-        <div *ngIf="!(edit || writeProtected)" (click)="handleEdit()">
+        <div *ngIf="!(edit || recipe?.writeProtected)" (click)="handleEdit()">
           <button md-mini-fab>
             <md-icon>mode_edit</md-icon>
           </button>
