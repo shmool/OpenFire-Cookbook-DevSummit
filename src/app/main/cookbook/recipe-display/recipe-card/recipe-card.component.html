@@ -1,0 +1,71 @@
+<md-card class="recipe-card">
+
+  <form [formGroup]="recipeForm" novalidate>
+    <fieldset [disabled]="!edit">
+
+      <md-card-header>
+        <app-avatar md-card-avatar
+                    [user]="recipeOwner"></app-avatar>
+
+        <md-card-title class="recipe-title">
+          <md-input-container>
+            <input mdInput
+                   formControlName="title"
+                   class="title-input"
+                   [placeholder]="getPlaceholder('title')"
+                   #titleInput>
+          </md-input-container>
+        </md-card-title>
+
+        <button md-mini-fab color="primary" *ngIf="edit" (click)="handleSave()">
+          <md-icon>save</md-icon>
+        </button>
+
+        <!-- override fieldset disabled by wrapping with div -->
+        <div *ngIf="!(edit || writeProtected)" (click)="handleEdit()">
+          <button md-mini-fab>
+            <md-icon>mode_edit</md-icon>
+          </button>
+        </div>
+
+      </md-card-header>
+
+      <md-card-content>
+
+        <div formArrayName="ingredients">
+          <div class="recipe-form-section-title">Ingredients
+            <button md-mini-fab *ngIf="edit" (click)="addIngredient($event)">
+              <md-icon>add</md-icon>
+            </button>
+          </div>
+
+          <div *ngFor="let ingredient of ingredients; let i = index;"
+               [formGroupName]="i">
+
+            <md-input-container fxFlex>
+              <input mdInput
+                     [placeholder]="getPlaceholder('ingredient')"
+                     formControlName="name">
+            </md-input-container>
+
+            <md-input-container fxFlex>
+              <input mdInput
+                     [placeholder]="getPlaceholder('quantity')"
+                     formControlName="quantity">
+            </md-input-container>
+          </div>
+        </div>
+
+        <div class="recipe-form-section-title">Instructions</div>
+        <md-input-container>
+          <textarea mdInput
+                    type="text"
+                    formControlName="instructions"
+                    rows="5"></textarea>
+        </md-input-container>
+
+      </md-card-content>
+    </fieldset>
+  </form>
+
+</md-card>

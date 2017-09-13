@@ -1,0 +1,29 @@
+fieldset {
+  border: 0;
+  padding: 0;
+}
+
+md-input-container {
+  width: 100%;
+}
+
+.recipe-card {
+
+  .mat-input-element:disabled {
+    color: black;
+  }
+
+  .recipe-title {
+    md-input-container {
+      margin-top: -14px;
+    }
+
+    .title-input {
+      font-size: 30px;
+    }
+  }
+}
+
+.recipe-form-section-title {
+  font-size: 24px;
+}
