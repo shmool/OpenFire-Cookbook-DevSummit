@@ -76,7 +76,7 @@ export class CookbookService {
             return recipe && {
               ...recipe,
               owner,
-              writeProtected: owner && owner.uid !== uid
+              writeProtected: recipe.uid !== uid
             };
           });
       });
