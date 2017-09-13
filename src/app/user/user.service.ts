@@ -1,10 +1,21 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { User } from '../shared/user.interface';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/operator/first';
+
+import * as firebase from 'firebase/app';
+
+const providers = {
+  google: firebase.auth.GoogleAuthProvider,
+  facebook: firebase.auth.FacebookAuthProvider,
+  twitter: firebase.auth.TwitterAuthProvider,
+  github: firebase.auth.GithubAuthProvider,
+  phone: firebase.auth.PhoneAuthProvider
+};
 
 export enum UserStatus {
   pending = 'pending',
@@ -38,13 +49,19 @@ const mockUsers = {
 export class UserService {
   user: User;
   private pending$ = new BehaviorSubject({ status: UserStatus.pending, user: null });
-  private userAuth$ = new BehaviorSubject({ status: UserStatus.signedOut, user: null });
+  private userAuth$;
   userData$;
   authError: any = null;
   uid$;
 
-  constructor() {
+  constructor(private afAuth: AngularFireAuth) {
     this.enterPending();
+    this.userAuth$ = this.afAuth.authState.map(authData => {
+      return {
+        status: authData ? UserStatus.authenticated : UserStatus.signedOut,
+        user: authData
+      };
+    });
     // notice! it makes a difference who's merging who!
     this.userData$ = this.pending$.merge(this.userAuth$)
       .do(userData => {
@@ -52,10 +69,6 @@ export class UserService {
           this.user = userData.user || null;
         }
       });
-    // mock user signed-out
-    setTimeout(() => {
-      this.userAuth$.next({ status: UserStatus.signedOut, user: null });
-    }, 2000);
 
     this.uid$ = this.userAuth$.map(userAuth => userAuth.user && userAuth.user.uid);
   }
@@ -65,41 +78,32 @@ export class UserService {
   }
 
   signOut() {
-    // mock
     this.enterPending();
-    setTimeout(() => {
-      this.userAuth$.next({ status: UserStatus.signedOut, user: null });
-    }, 2000);
+    this.afAuth.auth.signOut();
+  }
+
+  handleAuthError(err) {
+    this.authError = err;
+    this.pending$.next({ status: UserStatus.signedOut, user: null });
   }
 
   signInWithProvider(provider) {
-    // mock
     this.enterPending();
-    setTimeout(() => {
-      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUserZiggi });
-    }, 2000);
+    this.afAuth.auth.signInWithPopup(new providers[provider]())
+      .catch(err => this.handleAuthError(err));
   }
 
   signInWithEmail(email, password) {
     this.enterPending();
-    setTimeout(() => {
-      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUserFranco });
-    }, 2000);
+    this.afAuth.auth.signInWithEmailAndPassword(email, password)
+      .catch(err => this.handleAuthError(err));
   }
 
   signUp(email, password, displayName) {
-    const uid = Math.floor(Math.random() * 1000) + '';
-    const mockUser = {
-      email,
-      displayName,
-      avatarColor: '#aa33ff',
-      uid
-    };
-    mockUsers[uid] = mockUser;
     this.enterPending();
-    setTimeout(() => {
-      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUser });
-    }, 2000);
+    this.afAuth.auth.createUserWithEmailAndPassword(email, password)
+      .then(userInfo => userInfo.updateProfile({ displayName }))
+      .catch(err => this.handleAuthError(err));
   }
 
   getUser(uid) {

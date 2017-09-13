@@ -9,6 +9,7 @@ import { UserService } from './user/user.service';
 import { HttpModule } from '@angular/http';
 import { AngularFireModule } from 'angularfire2';
 import { environment } from '../environments/environment';
+import { AngularFireAuthModule } from 'angularfire2/auth';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import { environment } from '../environments/environment';
     MainModule,
     HttpModule,
     AngularFireModule.initializeApp(environment.firebaseConfig),
+    AngularFireAuthModule
   ],
   providers: [UserService],
   bootstrap: [AppComponent]
