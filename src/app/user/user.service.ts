@@ -3,6 +3,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { User } from '../shared/user.interface';
 
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/merge';
 
 export enum UserStatus {
   pending = 'pending',
@@ -35,26 +36,29 @@ const mockUsers = {
 @Injectable()
 export class UserService {
   user: User;
-  userData$: BehaviorSubject<any> = new BehaviorSubject({ status: UserStatus.signedOut, user: null });
+  private pending$ = new BehaviorSubject({ status: UserStatus.pending });
+  private userAuth$ = new BehaviorSubject({ status: UserStatus.signedOut, user: null });
+  userData$;
   authError: any = null;
 
   constructor() {
-    // mock user signed-out
     this.enterPending();
+    this.userData$ = this.userAuth$.merge(this.pending$);
+    // mock user signed-out
     setTimeout(() => {
-      this.userData$.next({ status: UserStatus.signedOut, user: null });
+      this.userAuth$.next({ status: UserStatus.signedOut, user: null });
     }, 2000);
   }
 
   enterPending() {
-    this.userData$.next({ status: UserStatus.pending });
+    this.pending$.next({ status: UserStatus.pending });
   }
 
   signOut() {
     // mock
     this.enterPending();
     setTimeout(() => {
-      this.userData$.next({ status: UserStatus.signedOut, user: null });
+      this.userAuth$.next({ status: UserStatus.signedOut, user: null });
     }, 2000);
   }
 
@@ -62,14 +66,14 @@ export class UserService {
     // mock
     this.enterPending();
     setTimeout(() => {
-      this.userData$.next({ status: UserStatus.authenticated, user: mockUserZiggi });
+      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUserZiggi });
     }, 2000);
   }
 
   signInWithEmail(email, password) {
     this.enterPending();
     setTimeout(() => {
-      this.userData$.next({ status: UserStatus.authenticated, user: mockUserFranco });
+      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUserFranco });
     }, 2000);
   }
 
@@ -84,7 +88,7 @@ export class UserService {
     mockUsers[uid] = mockUser;
     this.enterPending();
     setTimeout(() => {
-      this.userData$.next({ status: UserStatus.authenticated, user: mockUser });
+      this.userAuth$.next({ status: UserStatus.authenticated, user: mockUser });
     }, 2000);
   }
 
