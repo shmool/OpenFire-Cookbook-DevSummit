@@ -4,6 +4,7 @@ import { UserService } from '../../user/user.service';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
+import { AngularFireDatabase } from 'angularfire2/database';
 
 // mock
 const mockRecipeList = [
@@ -47,18 +48,21 @@ export class CookbookService {
   recipeList$: Observable<any>;
   private mockRecipeList$ = new BehaviorSubject(mockRecipeList);
 
-  constructor(/* todo: for mock */ private userService: UserService) {
+  constructor(
+    /* todo: for mock */ private userService: UserService,
+    private afDB: AngularFireDatabase) {
     this.initRecipeList();
   }
 
   initRecipeList() {
     this.recipeList$ = Observable.combineLatest(
-      this.mockRecipeList$,
+      this.afDB.list('devsummit/recipeList'),
       this.userService.uid$,
       (recipeList, uid) => {
         return recipeList.map(recipe => {
           return {
             ...recipe,
+            id: recipe.$key,
             ofCurrentUser: recipe.uid === uid
           };
         });
@@ -66,16 +70,16 @@ export class CookbookService {
   }
 
   getRecipe(id) {
-    // from mock
-    return Observable.of(mockRecipeList.find((recipe) => recipe.id === id))
+    return !id ? null : this.afDB.object(`devsummit/recipes/${id}`)
       .switchMap(recipe => {
         return Observable.combineLatest(
-          this.userService.getUser(recipe && recipe.uid),
+          this.afDB.object(`devsummit/users/${recipe.uid}`),
           this.userService.uid$,
           (owner, uid) => {
             return recipe && {
               ...recipe,
               owner,
+              id,
               writeProtected: recipe.uid !== uid
             };
           });
@@ -83,20 +87,10 @@ export class CookbookService {
   }
 
   saveRecipe(recipe) {
-    if (recipe.id) {
-      const currentRecipe = mockRecipeList.find((recipeInList) => recipe.id === recipeInList.id);
-      Object.assign(currentRecipe, recipe);
-    } else {
-      recipe.id = Math.floor(Math.random() * 1000) + '';
-      recipe.uid = this.userService.user.uid;
+      return this.afDB.object(`devsummit/recipes/${recipe.id}`).set(recipe);
+  }
 
-      mockRecipeList.push(recipe);
-    }
-
-    this.mockRecipeList$.next(mockRecipeList);
-
-    return new Promise<{ key }>((resolve) => {
-      resolve({ key: recipe.id });
-    });
+  saveNewRecipe(recipe) {
+    return this.afDB.list(`devsummit/recipes`).push(recipe);
   }
 }

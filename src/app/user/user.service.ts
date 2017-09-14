@@ -105,8 +105,4 @@ export class UserService {
       .then(userInfo => userInfo.updateProfile({ displayName }))
       .catch(err => this.handleAuthError(err));
   }
-
-  getUser(uid) {
-    return new BehaviorSubject(uid && mockUsers[uid]).first();
-  }
 }

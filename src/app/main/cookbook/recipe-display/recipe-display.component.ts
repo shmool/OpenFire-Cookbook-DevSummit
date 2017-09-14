@@ -40,9 +40,13 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   saveRecipe(recipe) {
-    this.cookbookService.saveRecipe(recipe)
-      .then(res => {
-        this.router.navigate(['/cookbook', res.key]);
+    return recipe.id
+      ? this.cookbookService.saveRecipe(recipe)
+      : this.cookbookService.saveNewRecipe(recipe)
+             .then(res => {
+               if (res) {
+                 this.router.navigate(['/cookbook', res.key]);
+        }
       });
   }
 

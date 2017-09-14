@@ -23,7 +23,7 @@ export class RecipeCardComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.recipe ? this.recipeForm.reset(this.recipe) : this.createForm();
-    if (this.recipe) {
+    if (this.recipe && this.recipe.ingredients) {
       const ingredientFGs = this.recipe.ingredients.map(
         ingredient => this.createIngredient(ingredient));
       this.recipeForm.controls.ingredients =
@@ -34,7 +34,7 @@ export class RecipeCardComponent implements OnInit, OnChanges {
 
   get ingredients() {
     return (this.recipeForm.get('ingredients') as FormArray).controls;
-  };
+  }
 
   createForm() {
     this.recipeForm = this.formBuilder.group({
